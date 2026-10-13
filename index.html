@@ -69,6 +69,29 @@ button.primary:hover:not(:disabled){filter:brightness(1.08);border-color:var(--p
 .rules{font-size:13.5px;color:var(--muted);max-width:75ch}
 .rules b{color:var(--ink);font-weight:600}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+.seg button{border:0;border-radius:0;font-weight:500;padding:7px 12px}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+.field{flex:1 1 320px;min-width:0;display:grid;gap:4px;font-size:14px}
+textarea,input[type=text]{font:inherit;font-size:14px;padding:7px 9px;border:1px solid var(--rule);border-radius:4px;background:var(--sheet);color:var(--ink);width:100%;box-sizing:border-box;resize:vertical}
+#team{width:min(280px,100%)}
+.ig-out{flex-basis:100%;display:grid;gap:14px;min-width:0}
+.opt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:12px}
+.opt{border:1px solid var(--rule);border-radius:4px;padding:12px;display:grid;gap:10px;align-content:start;min-width:0}
+.opt h3{margin:0;font-family:var(--f-display);font-weight:600;font-size:18px;letter-spacing:.08em;text-transform:uppercase}
+.opt pre{margin:0;white-space:pre-wrap;font-family:var(--f-body);font-size:14.5px;line-height:1.55;overflow-wrap:anywhere}
+.ig-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;min-width:0}
+.ig-meta>div{display:grid;gap:6px;align-content:start;min-width:0}
+.ig-meta p{margin:0;font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-mono);font-size:12.5px;padding:2px 8px;border-radius:999px;background:var(--pencil-soft);color:var(--pencil)}
+.chip.kw{background:var(--table);color:var(--muted)}
+.ig-out details{border-top:1px solid var(--rule);padding-top:10px}
+.ig-out summary{cursor:pointer;font-weight:600;font-size:14px}
+.ig-out ol{margin:8px 0 0;padding-left:22px;display:grid;gap:6px;font-size:14px}
+.ig-out li button{font-size:12px;padding:2px 8px;font-weight:500;margin-left:6px}
+.photo .cover{position:absolute;left:8px;bottom:8px;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:var(--pencil);color:#fff;padding:2px 7px;border-radius:2px}
 
 </style>
 </head>
@@ -77,7 +100,7 @@ button.primary:hover:not(:disabled){filter:brightness(1.08);border-color:var(--p
   <header>
     <div>
       <h1>Frame <span>Namer</span></h1>
-      <p class="lede">Drop in game photos. Each frame gets a short name and a one-sentence caption that never names the school, team nickname or mascot.</p>
+      <p class="lede">Drop in game photos. Name and caption each frame, or write one Instagram post for the whole set. Nothing names the school, team nickname or mascot unless you allow it.</p>
     </div>
   </header>
 
@@ -100,13 +123,18 @@ button.primary:hover:not(:disabled){filter:brightness(1.08);border-color:var(--p
   </section>
 
   <section class="bar" aria-label="Add photos and settings">
+    <div style="flex-basis:100%"><div class="seg" role="group" aria-label="Mode">
+      <button type="button" data-mode="photo" aria-pressed="true">Per photo</button>
+      <button type="button" data-mode="ig" aria-pressed="false">Instagram post</button>
+    </div></div>
+
     <label class="drop" id="drop" for="pick">
       <input id="pick" type="file" accept="image/jpeg,image/png,image/webp" multiple>
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1.5"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></svg>
       <span><b>Add photos</b><small>Click or drop JPEGs. Filenames like 20260920_TJL_Volleyball_vs_CSU-009 fill in sport and date.</small></span>
     </label>
     <div class="opts">
-      <label for="tone">Tone
+      <label for="tone" id="toneWrap">Tone
         <select id="tone">
           <option value="descriptive">Descriptive</option>
           <option value="hype">Hype</option>
@@ -115,12 +143,26 @@ button.primary:hover:not(:disabled){filter:brightness(1.08);border-color:var(--p
       </label>
       <label for="opp"><input id="opp" type="checkbox"> Allow opponent name</label>
     </div>
-    <div class="acts" style="gap:8px">
+    <div class="acts" id="photoActs" style="gap:8px">
       <button id="runAll" class="primary" type="button" disabled>Caption all</button>
       <button id="csv" type="button" disabled>Export CSV</button>
     </div>
     <div class="status" id="status" role="status" aria-live="polite" style="flex-basis:100%"></div>
   </section>
+
+  <section class="bar" id="igPanel" hidden aria-label="Instagram post">
+    <label for="notes" class="field">
+      <span><b>What's the post about?</b> <span class="tag">optional</span></span>
+      <textarea id="notes" rows="2" placeholder="e.g. Homecoming weekend, senior night, first win of the season"></textarea>
+    </label>
+    <div class="opts" style="flex-direction:column;align-items:flex-start">
+      <label for="igSchool"><input id="igSchool" type="checkbox"> Allow school name and school hashtags</label>
+      <input id="team" type="text" placeholder="School or team to tag" aria-label="School or team to tag" hidden>
+    </div>
+    <div class="acts"><button id="writePost" class="primary" type="button" disabled>Write post</button></div>
+    <div class="ig-out" id="igOut" aria-live="polite"></div>
+  </section>
+
 
   <section>
     <div class="sheet-head"><h2>Your sheet</h2><span class="tag" id="count">0 frames</span></div>
@@ -159,6 +201,7 @@ function apiKey(){ return $("key").value.trim(); }
 function syncKey(){
   const k = apiKey();
   $("keyState").textContent = k ? (k.startsWith("sk-ant-") ? "ready" : "check format") : "not set";
+  if(k && $("status").textContent.startsWith("Paste")) setStatus("Ready. Add photos to start.");
   if($("remember").checked && k) store(KEY_STORE,k); else store(KEY_STORE,null);
   render();
 }
@@ -379,6 +422,176 @@ $("csv").addEventListener("click", ()=>{
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "frame-names.csv";
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 });
+
+/* ---------- Instagram adapter: Claude API ---------- */
+const IG_MAX = () => 20;
+function igReady(){ return !!apiKey(); }
+async function askPost(blobs, prompt){
+  const content=[];
+  for(let i=0;i<blobs.length;i++){
+    content.push({type:"text", text:`Photo ${i+1}:`});
+    content.push({type:"image", source:{type:"base64", media_type:"image/jpeg", data: await toBase64Jpeg(blobs[i], 1024)}});
+  }
+  content.push({type:"text", text: prompt});
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{"content-type":"application/json","x-api-key":apiKey(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body: JSON.stringify({model:$("model").value, max_tokens:2000, messages:[{role:"user", content}]})
+  });
+  const json = await res.json().catch(()=>({}));
+  if(!res.ok){ const err=new Error(json?.error?.message||res.statusText); err.status=res.status; throw err; }
+  const text=(json.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
+  return JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}")+1));
+}
+function igErr(e){ return errorCopy(e); }
+
+/* ---------- Instagram post mode ---------- */
+let mode="photo", post=null, postBusy=false, postErr="";
+const segBtns=[...document.querySelectorAll(".seg button")];
+segBtns.forEach(b=>b.addEventListener("click",()=>{
+  mode=b.dataset.mode;
+  segBtns.forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
+  $("igPanel").hidden = mode!=="ig";
+  $("photoActs").hidden = mode!=="photo";
+  $("toneWrap").hidden = mode!=="photo";
+  render();
+}));
+$("igSchool").addEventListener("change",()=>{ $("team").hidden=!$("igSchool").checked; });
+
+function igOpponent(){ return frames.find(f=>f.meta?.opponent)?.meta.opponent || ""; }
+function igBanned(){
+  const opp = igOpponent();
+  const list = $("igSchool").checked ? [] : BASE_BANNED.filter(w=>w.trim()!=="college");
+  if(!$("opp").checked && opp) list.push(opp.toLowerCase());
+  return list;
+}
+function findBanned(text, list){
+  const h=(" "+text+" ").toLowerCase(), squashed=h.replace(/[\s#_-]+/g,"");
+  return list.find(w=>h.includes(w) || (w.trim().includes(" ") && squashed.includes(w.trim().replace(/[\s-]+/g,"")))) || "";
+}
+function igPrompt(n){
+  const allowSchool=$("igSchool").checked, team=$("team").value.trim();
+  const sports=[...new Set(frames.map(f=>f.meta?.sport).filter(Boolean))];
+  const dates=[...new Set(frames.map(f=>f.meta?.dateStr).filter(Boolean))];
+  const opp=igOpponent(), allowOpp=$("opp").checked && opp;
+  const notes=$("notes").value.trim();
+  const ctx=[
+    sports.length?`Sport: ${sports.join(", ")}`:"Sport: work it out from the photos",
+    dates.length?`Date shot: ${dates.join(", ")}`:"",
+    allowOpp?`Opponent: ${opp}`:"",
+    allowSchool&&team?`Team: ${team}`:"",
+    notes?`Notes from the photographer: ${notes}`:""
+  ].filter(Boolean).join("\n");
+  const schoolRule = allowSchool
+    ? (team ? `You may name ${team} in the captions and use it in up to 2 of the hashtags.` : "You may name the school if it is clearly visible in the photos, and use it in up to 2 of the hashtags.")
+    : "Never name or hint at the university or school: no school name, abbreviation, city, team nickname, mascot or conference, even if it is printed on jerseys, flags, signs or the field. This applies to the hashtags and alt text too.";
+  const oppRule = allowOpp ? "The opponent may be named once." : "Do not name the opponent.";
+  return `You are writing the caption for an Instagram carousel post from a sports photographer's game gallery. The ${n} attached images are the carousel photos in order: Photo 1 is the first image, Photo 2 the second, and so on.
+
+Context:
+${ctx}
+
+Instagram search reads caption text as keywords, and posts are limited to 5 hashtags. So the SEO comes from a few natural search keywords inside the caption plus a tight set of 5 hashtags.
+
+Write three caption options for the whole set:
+- "organic": casual and first-person from the photographer, like a real person posting, not a brand. 2-4 short sentences.
+- "story": walks through the day or the key moments in 3-5 sentences, with a blank line between beats.
+- "short": one or two punchy lines.
+
+Every option:
+- Opens with a hook under 125 characters that works on its own before Instagram's "more" cut-off.
+- Works in 2-4 search keywords naturally, such as the sport, "game day", "sports photography", or the event type. Never a keyword list.
+- Uses at most 2 emoji and no hashtags in the caption text.
+- Describes only what is in the photos. No invented scores, results, stats or player names.
+
+Rules:
+- ${schoolRule}
+- ${oppRule}
+
+Also return:
+- "hashtags": exactly 5, no spaces, each starting with #: one broad tag for the sport, one sports-photography tag, and three specific to this set or event.
+- "keywords": the 3-6 search phrases you worked into the captions.
+- "cover": the number of the photo that should lead the carousel, the strongest scroll-stopper.
+- "order": every photo number in the suggested carousel order, starting with the cover.
+- "alt": one alt text per photo in the original order (Photo 1 first), a plain description under 100 characters.
+
+Reply with only JSON in this shape:
+{"options":{"organic":"...","story":"...","short":"..."},"hashtags":["#..."],"keywords":["..."],"cover":1,"order":[1],"alt":["..."]}`;
+}
+async function writePost(){
+  const use=frames.slice(0, IG_MAX());
+  if(!use.length) return;
+  postBusy=true; postErr=""; render();
+  try{
+    const out=await askPost(use.map(f=>f.blob), igPrompt(use.length));
+    const o=out?.options||{};
+    if(!o.organic && !o.story && !o.short){ const bad=new SyntaxError("empty"); bad.code="invalid_json"; throw bad; }
+    const tags=(Array.isArray(out.hashtags)?out.hashtags:[]).map(t=>"#"+String(t).replace(/^#+/,"").replace(/\s+/g,"")).filter(t=>t.length>1).slice(0,5);
+    const n=use.length, num=x=>{ const v=parseInt(x,10); return v>=1&&v<=n ? v : null; };
+    const cover=num(out.cover)||1;
+    let order=(Array.isArray(out.order)?out.order:[]).map(num).filter(Boolean);
+    order=[...new Set([cover,...order])]; for(let i=1;i<=n;i++) if(!order.includes(i)) order.push(i);
+    const options={organic:String(o.organic||"").trim(), story:String(o.story||"").trim(), short:String(o.short||"").trim()};
+    const alt=use.map((f,i)=>String(out.alt?.[i]||"").trim());
+    const list=igBanned(), flags={};
+    for(const k in options) flags[k]=findBanned(options[k],list);
+    flags.tags=findBanned(tags.join(" "),list); flags.alt=findBanned(alt.join(" "),list);
+    post={options, tags, keywords:(Array.isArray(out.keywords)?out.keywords:[]).map(String).slice(0,6), cover, order, alt, ids:use.map(f=>f.id), flags, skipped:frames.length-use.length};
+  }catch(e){ postErr=igErr(e); }
+  finally{ postBusy=false; render(); }
+}
+$("writePost").addEventListener("click", writePost);
+
+const LABELS={organic:"Organic", story:"Story", short:"Short"};
+const two=n=>String(n).padStart(2,"0");
+function syncIG(){
+  $("writePost").disabled = !igReady() || !frames.length || postBusy;
+  $("writePost").textContent = post ? "Rewrite post" : "Write post";
+  const o=$("igOut");
+  if(postBusy){ o.innerHTML='<p class="cap ph">Looking through the set and writing three options…</p>'; return; }
+  if(!post){ o.innerHTML = postErr ? `<div class="err">${esc(postErr)}</div>` : (frames.length ? "" : '<p class="cap ph">Add the gallery photos above, in the order you shot them.</p>'); return; }
+  const stale = post.ids.join()!==frames.slice(0,post.ids.length).map(f=>f.id).join();
+  const flag = w => `<div class="flag">Mentions “${esc(w)}”. Edit before posting.</div>`;
+  o.innerHTML = `
+    ${postErr?`<div class="err">${esc(postErr)}</div>`:""}
+    ${stale?'<div class="flag">The photos changed since this was written. Press Rewrite post to update it.</div>':""}
+    ${post.skipped>0?`<div class="flag">Only the first ${post.ids.length} photos were used. ${IG_MAX()<20?`This view can send ${IG_MAX()} photos at a time.`:"Instagram carousels hold up to 20."}</div>`:""}
+    <div class="opt-grid">${Object.keys(LABELS).map(k=>`
+      <div class="opt"><h3>${LABELS[k]}</h3><pre>${esc(post.options[k])}</pre>
+        ${post.flags[k]?flag(post.flags[k]):""}
+        <div class="acts"><button type="button" data-copy="${k}">Copy with hashtags</button><button type="button" data-copy="${k}-plain">Caption only</button></div>
+      </div>`).join("")}</div>
+    <div class="ig-meta">
+      <div><span class="tag">Hashtags · Instagram allows 5</span><div class="chips">${post.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div>
+        ${post.flags.tags?flag(post.flags.tags):""}
+        <div class="acts"><button type="button" data-copy="tags">Copy hashtags</button></div></div>
+      <div><span class="tag">Search keywords in the caption</span><div class="chips">${post.keywords.map(t=>`<span class="chip kw">${esc(t)}</span>`).join("")}</div></div>
+      <div><span class="tag">Carousel</span><p>Lead with photo ${two(post.cover)}.</p><p>Suggested order: ${post.order.map(two).join(" · ")}</p></div>
+    </div>
+    <details><summary>Alt text for each photo</summary>
+      ${post.flags.alt?flag(post.flags.alt):""}
+      <ol>${post.alt.map((a,i)=>`<li>${esc(a||"—")}${a?`<button type="button" data-copy="alt-${i}">Copy</button>`:""}</li>`).join("")}</ol>
+      <p class="tag" style="margin:8px 0 0;text-transform:none;letter-spacing:0">In Instagram: Advanced settings → Accessibility → Write alt text.</p>
+    </details>`;
+  if(!stale){
+    const card=document.querySelector(`#grid .frame[data-id="${post.ids[post.cover-1]}"] .photo`);
+    if(card) card.insertAdjacentHTML("beforeend",'<span class="cover">Cover</span>');
+  }
+}
+$("igOut").addEventListener("click", async e=>{
+  const b=e.target.closest("button[data-copy]"); if(!b||!post) return;
+  const k=b.dataset.copy, tags=post.tags.join(" ");
+  const text = k==="tags" ? tags
+    : k.startsWith("alt-") ? post.alt[+k.slice(4)]
+    : k.endsWith("-plain") ? post.options[k.slice(0,-6)]
+    : post.options[k]+"\n\n"+tags;
+  const old=b.textContent;
+  try{ await navigator.clipboard.writeText(text); b.textContent="Copied"; }
+  catch{ b.textContent="Copy blocked. Select the text instead"; }
+  setTimeout(()=>b.textContent=old,1600);
+});
+const renderBase = render;
+render = function(){ renderBase(); syncIG(); };
 
 /* ---------- boot ---------- */
 renderRefs(); syncKey();
